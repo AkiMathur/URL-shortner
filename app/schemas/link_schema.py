@@ -1,14 +1,14 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import date
 
-class LinkCreate(BaseModel):        # what the client sends to create a link
+class LinkCreateReq(BaseModel):        # what the client sends to create a link
     original_url: str
     custom_alias: str | None = None
 
 class LinkResponse(BaseModel):      # what the client gets back
-    short_code: str
     original_url: str
-    created_at: datetime
+    short_code: str
+    created_at: date
 
     class Config:
         from_attributes = True      # lets it read directly from a SQLAlchemy model

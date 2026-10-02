@@ -25,22 +25,23 @@ def verify_pass(passw: str, hashed: str) -> bool:
 
 
 #Create JWT token
-def create_token(data: dict) -> str:
-    to_encode = data.copy()
+def create_token(user_id: int, username: str) -> str:
+    to_encode = {"user_id": user_id, "username": username}
     expire = datetime.now(timezone.utc) + timedelta(minutes=60)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY,algorithm=ALGORITHM)
 
 #Verify JWT token
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
 def verify_token(token: str = Depends(oauth2_scheme)) -> dict:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        return payload
+        username: str  = payload.get("username")
+        user_id: int   = payload.get("user_id")
+        if username is None or user_id is None:
+            raise HTTPException(status_code=401, detail="Could not validate user")
+        return {"token_userid": user_id,"token_username": username}
     except JWTError:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired Token"
-        )
+        raise HTTPException(status_code=401, detail="Could not validate user")
