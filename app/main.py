@@ -17,9 +17,6 @@ load_dotenv()
 app = FastAPI()
 
 
-class CreateLinkReq(BaseModel):
-    original_url: str
-
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -57,13 +54,17 @@ async def login(db: db_dependency, form_data: OAuth2PasswordRequestForm = Depend
     token = create_token(db_user.id, db_user.username)
     return {"access_token": token, "token_type": "bearer"}
 
+#Future feature: temp db for storing links with expiry date, and a background task to delete expired links. For now, we will just store the links in the database without any expiry date for shorturl without login.
 
 @app.post("/links")
-async def create_link(link_req: CreateLinkReq, db: db_dependency, token_user: user_dependency):
+async def create_link(link_req: LinkCreateReq, db: db_dependency, token_user: user_dependency):
     db_link = db.query(link_model.Link).filter(link_model.Link.owner_id == token_user["token_userid"], link_model.Link.original_url == link_req.original_url).first()
     if db_link:
         return {"message": "Link already exists", "short_code": db_link.short_code}
-    short_code=url_to_shortcode()
+    if link_req.custom_alias:
+        short_code = url_to_shortcode( token_user["token_username"] + "/" + link_req.custom_alias)
+    else:
+        short_code=url_to_shortcode(token_user["token_username"])
     new_shortcode = link_model.Link(
         short_code=short_code,
         original_url=link_req.original_url,
@@ -86,12 +87,21 @@ async def get_all_links(token_user: user_dependency, db: db_dependency) -> list[
         created_at=link.created_at
     ) for link in db_links]
 
-@app.get("/{shortcode}/")
-async def get_link(shortcode: str, db: db_dependency):
-    db_link = db.query(link_model.Link).filter(link_model.Link.short_code == shortcode).first()
+@app.get("/{shorturl}/")
+async def get_link(shorturl: str, db: db_dependency):
+    db_link = db.query(link_model.Link).filter(link_model.Link.short_code == shorturl).first()
     if not db_link:
-        raise HTTPException(status_code=404, detail="Shortcode not found")
+        raise HTTPException(status_code=404, detail="ShortURL not found")
     return RedirectResponse(url=db_link.original_url)
 
+@app.delete("/shorturl_delete/{shorturl}/")
+async def delete_shorturl(shorturl: str, db: db_dependency, token_user: user_dependency):
+    db_link = db.query(link_model.Link).filter(link_model.Link.owner_id == token_user["token_userid"], link_model.Link.short_code == shorturl).first()
+    if not db_link:
+        raise HTTPException(status_code=404, detail="URL not found")
+
+    db.delete(db_link)
+    db.commit()
+    return {"message": "Shorturl deleted successfully", "short_url": shorturl}
 
 Base.metadata.create_all(engine)
