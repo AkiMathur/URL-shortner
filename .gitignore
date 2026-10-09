@@ -1,7 +1,30 @@
+# Environment & Secrets
 .env
+.env.*
+!.env.example
+
+# Virtual Environment
 .venv/
-_pycache__/
-alembic/_pycache__/
-alembic/versions/
-alembic.ini
+venv/
+ENV/
+
+# Python Cache & Bytecode
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+*.db
+*.sqlite3
+
+# IDE / Editor Settings
 .vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db

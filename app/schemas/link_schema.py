@@ -12,3 +12,6 @@ class LinkResponse(BaseModel):      # what the client gets back
 
     class Config:
         from_attributes = True      # lets it read directly from a SQLAlchemy model
+
+class LinkUpdateReq(BaseModel):     # what the client sends to update a link
+    original_url: str
