@@ -25,4 +25,16 @@ def test_users_only_see_their_own_links(client, make_user, make_link):
     make_link(alice, "https://alice.example.com")
 
     r = client.get("/user/all_links", headers=bob)
-    assert r.status_code == 404  # Bob has no links; Alice's must not leak
+    assert r.status_code == 200
+    assert r.json() == []  # Bob has no links; Alice's must not leak
+
+
+def test_pagination_limits_results(client, make_user, make_link):
+    user = make_user("paginated_user")
+    make_link(user, "https://link1.com")
+    make_link(user, "https://link2.com")
+    make_link(user, "https://link3.com")
+
+    r = client.get("/user/all_links?limit=2&offset=0", headers=user)
+    assert r.status_code == 200
+    assert len(r.json()) == 2

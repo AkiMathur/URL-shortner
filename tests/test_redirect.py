@@ -22,8 +22,11 @@ def test_redirect_populates_cache(client, make_user, make_link, fake_redis):
 
 def test_redirect_logs_a_click(client, make_user, make_link, db_session):
     code = make_link(make_user())
-    client.get(f"/{code}", follow_redirects=False)
-    assert db_session.query(Clicks).count() == 1
+    client.get(f"/{code}", headers={"User-Agent": "test-agent"}, follow_redirects=False)
+    click = db_session.query(Clicks).first()
+    assert click is not None
+    assert click.ip_hash is not None
+    assert click.user_agent == "test-agent"
 
 
 def test_deleted_link_stops_redirecting(client, make_user, make_link):
