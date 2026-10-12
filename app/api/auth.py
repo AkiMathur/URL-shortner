@@ -1,10 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
+
 from app.core.deps import db_dependency, user_dependency
+from app.core.rate_limit import rate_limit
+from app.schemas.user_schema import UserCreateReq
+from app.models import user_model
+from app.core.security import verify_pass,hash_pass,create_token
 
 
+router = APIRouter(tags=["auth"])
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
 
 
-@app.post("/newusers", dependencies=[Depends(rate_limit(limit=5, window=60, scope="signup"))])
+@router.post("/newusers", dependencies=[Depends(rate_limit(limit=5, window=60, scope="signup"))])
 async def create_user(user: UserCreateReq, db: db_dependency):
     db_user = db.query(user_model.Users).filter(user_model.Users.username == user.username).first()
     if db_user:
@@ -14,7 +26,7 @@ async def create_user(user: UserCreateReq, db: db_dependency):
     db.commit()
     return {"message": "User created successfully", "username" : user.username}
 
-@app.post("/login", response_model=Token, dependencies=[Depends(rate_limit(limit=5, window=60, scope="login"))])
+@router.post("/login", response_model=Token, dependencies=[Depends(rate_limit(limit=5, window=60, scope="login"))])
 async def login(db: db_dependency, form_data: OAuth2PasswordRequestForm = Depends()):
     db_user = db.query(user_model.Users).filter(user_model.Users.username == form_data.username).first()
     if not db_user or not verify_pass(form_data.password, db_user.hashed_password):

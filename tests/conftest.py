@@ -11,8 +11,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.database import Base
-from app.main import app, get_db
+from app.database import Base, get_db
+from app.main import app
 
 
 @pytest.fixture
@@ -28,7 +28,8 @@ def db_session(monkeypatch):
 
     # log_click() opens SessionLocal directly (not via Depends), so patch it too,
     # otherwise background click logging would write to your REAL database
-    monkeypatch.setattr("app.main.SessionLocal", TestingSession)
+    monkeypatch.setattr("app.database.SessionLocal", TestingSession)
+    monkeypatch.setattr("app.api.redirect.SessionLocal", TestingSession)
 
     session = TestingSession()
     yield session
