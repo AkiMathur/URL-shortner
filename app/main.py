@@ -30,3 +30,8 @@ def health():
 app.include_router(auth.router)
 app.include_router(links.router)
 app.include_router(redirect.router)
+
+
+#Future feature: 
+# 1. temp db for storing links with expiry date, and a background task to delete expired links. For now, we will just store the links in the database without any expiry date for shorturl without login.
+# 2. Negative caching for unknown codes

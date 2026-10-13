@@ -2,14 +2,13 @@ from fastapi import APIRouter, HTTPException, Query, Request
 from datetime import datetime, timezone, date
 
 from app.core.deps import db_dependency, user_dependency
+from app.core.cache import invalidate_link
 from app.schemas.link_schema import LinkCreateReq, LinkResponse, LinkUpdateReq
 from app.models import link_model, clicks_model
 from app.services.shortcode import url_to_shortcode
 
 router = APIRouter(tags=["links"])
 
-
-#Future feature: temp db for storing links with expiry date, and a background task to delete expired links. For now, we will just store the links in the database without any expiry date for shorturl without login.
 
 @router.post("/create_link")
 async def create_link(link_req: LinkCreateReq, db: db_dependency, token_user: user_dependency, request: Request):
@@ -84,10 +83,7 @@ async def update_shorturl(shorturl: str, req: LinkUpdateReq, db: db_dependency, 
     else:
         db_link.original_url = req.original_url
         db.commit()
-
-        key = f"link:{shorturl}"
-        request.app.state.redis.delete(key)
-
+        invalidate_link(request.app.state.redis, shorturl)
         return {"message": "URL updated successfully", "new_url": req.original_url, "short_url": shorturl, "short_link":str(request.base_url) + shorturl}
 
 @router.delete("/shorturl_delete/{shorturl:path}/")
@@ -96,8 +92,7 @@ async def delete_shorturl(shorturl: str, db: db_dependency, token_user: user_dep
     if not db_link:
         raise HTTPException(status_code=404, detail="URL not found")
 
-    key = f"link:{shorturl}"
-    request.app.state.redis.delete(key)
+    invalidate_link(request.app.state.redis, shorturl)
 
     db.delete(db_link)
     db.commit()
