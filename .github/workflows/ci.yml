@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - run: pytest -v
+        env:
+          SECRET_KEY: ci-test-secret
+          ALGORITHM: HS256
+          # Tests use SQLite + fakeredis, but app imports still read this
+          DATABASE_URL: postgresql://user:pass@localhost:5432/test
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t url-shortener .
