@@ -22,10 +22,12 @@ jobs:
         env:
           SECRET_KEY: ci-test-secret
           ALGORITHM: HS256
-          # Tests use SQLite + fakeredis, but app imports still read this
-          DATABASE_URL: postgresql://user:pass@localhost:5432/test
+          # SQLite URL: skips the postgres-only database_exists() check in database.py
+          # conftest.py overrides the engine/session anyway, so no real DB is used
+          DATABASE_URL: sqlite://
 
   docker-build:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
