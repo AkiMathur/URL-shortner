@@ -8,9 +8,10 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Create DB if it doesn't exist
-if not database_exists(DATABASE_URL):
-    create_database(DATABASE_URL)
+# Auto-create the DB only for Postgres (not SQLite used in tests)
+if DATABASE_URL and DATABASE_URL.startswith("postgresql"):
+    if not database_exists(DATABASE_URL):
+        create_database(DATABASE_URL)
 
 engine = create_engine(DATABASE_URL)
 
