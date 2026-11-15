@@ -1,6 +1,6 @@
 # URL Shortener API
 
-![CI](https://github.com/USER/REPO/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/AkiMathur/URL-shortner/actions/workflows/ci.yml/badge.svg)
 
 A FastAPI URL shortener with JWT auth, Redis caching, rate limiting, and click analytics.
 
@@ -28,8 +28,8 @@ flowchart LR
 ## Quick start
 
 ```bash
-git clone https://github.com/USER/REPO.git
-cd REPO
+git clone https://github.com/AkiMathur/URL-shortner.git
+cd URL-shortner
 cp .env.example .env      # then edit the secrets
 docker compose up --build
 ```
