@@ -28,8 +28,8 @@ flowchart LR
 ## Quick start
 
 ```bash
-git clone https://github.com/USER/REPO.git
-cd REPO
+git clone https://github.com/AkiMathur/URL-shortner.git
+cd URL-shortner
 cp .env.example .env      # then edit the secrets
 docker compose up --build
 ```
