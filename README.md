@@ -1,6 +1,6 @@
 # URL Shortener API
 
-![CI](https://github.com/USER/REPO/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/AkiMathur/URL-shortner/actions/workflows/ci.yml/badge.svg)
 
 A FastAPI URL shortener with JWT auth, Redis caching, rate limiting, and click analytics.
 
